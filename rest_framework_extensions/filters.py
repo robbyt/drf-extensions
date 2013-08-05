@@ -86,7 +86,6 @@ class DictFilterBackend(BaseFilterBackend):
             )
             if not lookup_bits:
                 continue
-
             value = self.filter_value_to_python(value, field_name, filters, filter_expr, filter_type)
 
             db_field_name = LOOKUP_SEP.join(lookup_bits)
@@ -117,13 +116,16 @@ class DictFilterBackend(BaseFilterBackend):
         # todo: if field is relational serializer, then recursively drill through and use serializer fieldname
         # (not model)
 
-        model_field_name = serializer_class.base_fields[field_name].source or field_name
+        if field_name in serializer_class.base_fields:
+            model_field_name = serializer_class.base_fields[field_name].source or field_name
+        else:
+            model_field_name = field_name
 
         # Check to see if it's a relational lookup and if that's allowed.
         if filter_bits:
             if not filters_dict[field_name] == ALL_WITH_RELATIONS:
                 return None
-            return [model_field_name] + filter_bits[1:]
+            return [model_field_name] + filter_bits
         else:
             return [model_field_name]
 
@@ -143,7 +145,6 @@ class DictFilterBackend(BaseFilterBackend):
         if filter_type in ('in', 'range') and len(value):
             if hasattr(filters, 'getlist'):
                 value = []
-
                 for part in filters.getlist(filter_expr):
                     value.extend(part.split(','))
             else:

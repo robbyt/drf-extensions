@@ -1,0 +1,12 @@
+    ADDED: Tastypie-like filter backend 'filters.DictFilterBackend'
+
+v0.2
+====
+Date: 2013-08-01
+
+    ADDED: 'mixins.DetailSerializerMixin' with custom queryset_detail for viewset
+
+v0.1
+====
+Date: 2013-07-24
+Initial release

@@ -37,5 +37,5 @@ class CommentRating(DRFExtensionsModel):
     rating = models.CharField(choices=RATING_CHOICES, max_length=5)
     comment = models.ForeignKey(Comment)
     created = models.DateTimeField()
-    is_moderated = models.BooleanField(default=False)
+    is_moderated = models.NullBooleanField(default=False)
     user = models.ForeignKey(User)
