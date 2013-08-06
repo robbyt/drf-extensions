@@ -99,7 +99,7 @@ Tastypie-like filter backend 'filters.DictFilterBackend':
 
     class ActionViewSet(viewsets.ReadOnlyModelViewSet):
         serializer_class = ActionSerializer
-        queryset = Action.objects.filter_for_current_site_type().prefetch_related('surveys__content_object')
+        queryset = Action.objects.all()
         filter_backend = DictFilterBackend
         filters_dict = {
             'id': ['exact', 'in', 'range'],
