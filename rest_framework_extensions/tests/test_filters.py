@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import datetime
+from django.core.exceptions import ValidationError
 
 from django.test import TestCase
 
@@ -29,7 +30,7 @@ class CommentRatingViewSet(viewsets.ReadOnlyModelViewSet):
     filters_dict = {
         'id': ['exact', 'lte'],
         'rating': ['in', 'range'],
-        'created': ['year', 'month', 'day', 'range'],
+        'created': ['exact', 'year', 'month', 'day', 'range'],
         'is_moderated': ['exact'],
         'comment': filters.ALL,
         'user': filters.ALL_WITH_RELATIONS
@@ -176,7 +177,7 @@ class TestDictFilterBackend__All_Lookup(TestDictFilterBackendBase):
 
 
 class TestDictFilterBackend__ALL_WITH_RELATIONS_Lookup(TestDictFilterBackendBase):
-    def _test_should_allow_filter_by_all_lookups(self):
+    def test_should_allow_filter_by_all_lookups(self):
         self.filter_should_find('user__in=1')
         self.filter_should_not_find('user__in=2,3')
 
@@ -187,6 +188,19 @@ class TestDictFilterBackend__ALL_WITH_RELATIONS_Lookup(TestDictFilterBackendBase
         self.filter_should_not_find('user__name__startswith=Vo')
 
 
-# test filter by field_name or source
+class TestDictFilterBackend__ErrorHandling(TestDictFilterBackendBase):
+    def test_should_not_raise_validation_errors(self):
+        self.filter_should_find('created=' + self.created.strftime('%Y-%m-%d'))
+        try:
+            self.filter_should_find('created=' + self.created.strftime('%Y-%m-%dBazinga'))
+            is_raised = False
+        except ValidationError:
+            is_raised = True
+        self.assertFalse(is_raised, msg='should suppress ValidationError and return all data')
 
-# test with django-filter
+
+# todo: test filter by field_name or source
+
+# todo: test fallback with django-filter DictFilterBackend
+
+# todo: test fallback with OrderingFilter

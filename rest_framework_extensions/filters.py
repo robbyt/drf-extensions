@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Django 1.5 has moved this constant up one level.
+from django.core.exceptions import ValidationError
+
 try:
     from django.db.models.constants import LOOKUP_SEP
 except ImportError:
@@ -40,7 +42,7 @@ class DictFilterBackend(BaseFilterBackend):
 
         try:
             return queryset.filter(**applicable_filters)
-        except ValueError:
+        except (ValueError, ValidationError):  # todo: test ValueError handling
             return queryset.all()
 
     def build_filters(self, filters, queryset, serializer_class, filters_dict):
