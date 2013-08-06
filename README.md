@@ -93,6 +93,33 @@ Custom queryset for detail view:
         queryset = Survey.objects.all()
         queryset_detail = queryset.select_related('form')
 
+Tastypie-like filter backend 'filters.DictFilterBackend':
+
+    from rest_framework_extensions.filters import ALL, ALL_WITH_RELATIONS, DictFilterBackend
+
+    class ActionViewSet(viewsets.ReadOnlyModelViewSet):
+        serializer_class = ActionSerializer
+        queryset = Action.objects.filter_for_current_site_type().prefetch_related('surveys__content_object')
+        filter_backend = DictFilterBackend
+        filters_dict = {
+            'id': ['exact', 'in', 'range'],
+            'registration_status': ALL,
+            'slug': ALL,
+            'category': ALL_WITH_RELATIONS,
+        }
+
+Ofcourse you can use it in backend settings:
+
+    # settings.py
+
+    REST_FRAMEWORK = {
+        'DEFAULT_FILTER_BACKENDS': (
+            'rest_framework_extensions.filters.DictFilterBackend',
+            'rest_framework.filters.OrderingFilter',
+        )
+    }
+
+
 How to run tests locally:
 
     $ python setup.py test
