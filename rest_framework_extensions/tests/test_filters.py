@@ -9,6 +9,7 @@ from rest_framework import viewsets
 
 from rest_framework_extensions.tests.models import Comment, CommentRating, User
 from rest_framework_extensions import filters
+from rest_framework_extensions.tests.helpers import TestFiltersHelperMixin
 
 
 class CommentRatingSerializer(serializers.ModelSerializer):
@@ -43,8 +44,9 @@ router.register(r'comment-ratings', CommentRatingViewSet, base_name='comment-rat
 urlpatterns = router.urls
 
 
-class TestDictFilterBackendBase(TestCase):
+class TestDictFilterBackendBase(TestFiltersHelperMixin, TestCase):
     urls = 'rest_framework_extensions.tests.test_filters'
+    test_filters_path = '/comment-ratings/'
 
     def setUp(self):
         self.created = datetime.datetime(2012, 12, 1)
@@ -62,18 +64,6 @@ class TestDictFilterBackendBase(TestCase):
             created=self.created,
             is_moderated=True,
         )
-
-    def filter_should_find(self, filter_args, msg=None):
-        return self._filter_should_find(filter_args, is_should_find=True, msg=msg)
-
-    def filter_should_not_find(self, filter_args, msg=None):
-        return self._filter_should_find(filter_args, is_should_find=False, msg=msg)
-
-    def _filter_should_find(self, filter_args, is_should_find, msg=None):
-        self.assertEqual(self.is_found_by_filter(filter_args), is_should_find, msg=msg)
-
-    def is_found_by_filter(self, filter_args):
-        return bool(len(self.client.get('/comment-ratings/?' + filter_args).data))
 
 
 class TestDictFilterBackend__WhiteListOfLookups(TestDictFilterBackendBase):
@@ -200,6 +190,8 @@ class TestDictFilterBackend__ErrorHandling(TestDictFilterBackendBase):
 
 
 # todo: test filter by field_name or source
+
+# todo: test should use fields only from serializers (could be security issue)
 
 # todo: test fallback with django-filter DictFilterBackend
 

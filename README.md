@@ -8,9 +8,7 @@ DRF-extensions is a collection of custom extensions for [Django REST Framework](
 
     pip install drf-extensions
 
-# Extensions
-
-Extended @action, @link decorators and ExtendedDefaultRouter example.
+### Extended @action, @link decorators and router
 
     class DistributionViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = DistributionNews.objects.all()
@@ -56,6 +54,8 @@ Extended @action, @link decorators and ExtendedDefaultRouter example.
     router.register(r'distributions', DistributionViewSet, base_name='distribution')
     urlpatterns = router.urls
 
+### Detail serializer
+
 DetailSerializerMixin lets add custom serializer for detail view:
 
     class SurveySerializer(serializers.ModelSerializer):
@@ -93,7 +93,7 @@ Custom queryset for detail view:
         queryset = Survey.objects.all()
         queryset_detail = queryset.select_related('form')
 
-Tastypie-like filter backend 'filters.DictFilterBackend':
+### Tastypie-like filter backend
 
     from rest_framework_extensions.filters import ALL, ALL_WITH_RELATIONS, DictFilterBackend
 
@@ -118,6 +118,50 @@ Ofcourse you can use it in backend settings:
             'rest_framework.filters.OrderingFilter',
         )
     }
+
+### Django-filter QuerySet method filtering
+
+Allows filtering by QuerySet methods. Definition example:
+
+    from rest_framework_extensions import queryset_filters
+
+    class User(models.Model):
+        activities = models.CharField(max_length=100)
+        name = models.CharField(max_length=100)
+        surname = models.CharField(max_length=100)
+
+
+    class UserFilter(django_filters.FilterSet):
+        is_student = queryset_filters.BooleanFilter(
+            true_method_name='filter_by_students',
+            false_method_name='exclude_students',
+        )
+        with_name_and_surname = queryset_filters.MethodFilter('filter_by_with_name_and_surname')
+
+        class Meta:
+            model = User
+            fields = [
+                'is_student',
+                'with_name_and_surname',
+            ]
+
+
+    class UserViewSet(viewsets.ReadOnlyModelViewSet):
+        serializer_class = UserSerializer
+        queryset = User.objects.all()
+        filter_class = UserFilter
+
+And now you can filter by QuerySet methods:
+
+    $ curl /v1/users/?is_student=True
+    # => User.objects.all().filter_by_students()
+
+    $ curl /v1/users/?is_student=False
+    # => User.objects.all().exclude_students()
+
+    $ curl /v1/users/?with_name_and_surname=gennady,chibisov
+    # => User.objects.all().filter_by_with_name_and_surname('gennady','chibisov')
+
 
 
 How to run tests locally:
