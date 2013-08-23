@@ -4,6 +4,8 @@ import django_filters
 
 class MethodFilter(django_filters.CharFilter):
     def filter(self, qs, value):
+        if not value:
+            return qs
         args = value.split(',')
         try:
             return getattr(qs, self.name)(*args)

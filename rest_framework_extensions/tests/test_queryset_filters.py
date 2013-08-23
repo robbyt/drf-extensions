@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from mock import Mock, patch
+
 from django.db.models.query import QuerySet
 from django.test import TestCase
 from django.db import models
@@ -117,6 +119,21 @@ class TestQuerySetFilters(TestFiltersHelperMixin, TestCase):
         self.filter_should_not_find('with_name_and_surname=vladimir,chibisov')  # wrong name
         self.filter_should_not_find('with_name_and_surname=gennady,ivanov')  # wrong surname
 
-    def _test_queryset_method__wrong_number_of_params(self):
+    def test_queryset_method__wrong_number_of_params(self):
         self.filter_should_find('with_name_and_surname=gennady')
         self.filter_should_find('with_name_and_surname=')
+
+    def test_queryset_method__should_not_perform_query_without_arguments(self):
+        class MockException(Exception):
+            pass
+
+        with patch.object(ProfileQuerySet, 'filter_by_with_name_and_surname', Mock(side_effect=MockException)):
+            try:
+                self.filter_should_find('with_name_and_surname=')
+            except MockException:
+                self.fail('Should not perform queryset evaluation without arguments')
+
+            try:
+                self.filter_should_find('')
+            except MockException:
+                self.fail('Should not perform queryset evaluation without filter property')
